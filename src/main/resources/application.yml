@@ -1,0 +1,10 @@
+spring:
+  redis:
+    host: localhost
+
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          r2dbc: debug
