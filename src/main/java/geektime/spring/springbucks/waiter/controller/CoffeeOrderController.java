@@ -17,8 +17,6 @@ import reactor.core.publisher.Mono;
 public class CoffeeOrderController {
     @Autowired
     private OrderService orderService;
-    @Autowired
-    private CoffeeService coffeeService;
 
     @GetMapping("/{id}")
     public Mono<CoffeeOrder> getOrder(@PathVariable("id") Long id) {
