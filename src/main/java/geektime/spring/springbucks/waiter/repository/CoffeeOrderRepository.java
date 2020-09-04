@@ -4,8 +4,10 @@ import com.google.common.collect.Lists;
 import geektime.spring.springbucks.waiter.model.Coffee;
 import geektime.spring.springbucks.waiter.model.CoffeeOrder;
 import geektime.spring.springbucks.waiter.model.OrderState;
+import org.joda.money.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.r2dbc.core.DatabaseClient;
+import org.springframework.data.r2dbc.core.RowsFetchSpec;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,22 +25,15 @@ public class CoffeeOrderRepository {
         return databaseClient.execute(String.format("select * from t_order where id = %d", id))
                 .map((r, rm) -> CoffeeOrder.builder().id(id).customer(r.get("customer", String.class))
                         .state(OrderState.findByCode(r.get("state", Integer.class)))
-                        .createTime(r.get("create_time", Date.class))
-                        .updateTime(r.get("update_time", Date.class))
-                        .items(Lists.newArrayList())
-                        .build())
-                .first()
+                        .createTime(r.get("create_time", Date.class)).updateTime(r.get("update_time", Date.class))
+                        .items(Lists.newArrayList()).build()).first()
                 .flatMap(o -> databaseClient.execute(String.format("select c.* from t_coffee c, t_order_coffee oc " +
-                        "where c.id = oc.items_id and oc.coffee_order_id = %d ", id))
-                        .as(Coffee.class)
-                        .fetch()
-                        .all()
-                        .collectList()
-                        .flatMap(l -> {
-                            o.getItems().addAll(l);
-                            return Mono.just(o);
-                        })
-                );
+                "where c.id = oc.items_id and oc.coffee_order_id = %d ", id))
+                .as(Coffee.class)
+                        .fetch().all().collectList().flatMap(l -> {
+                    o.getItems().addAll(l);
+                    return Mono.just(o);
+                }));
     }
 
     public Mono<Long> save(CoffeeOrder order) {
